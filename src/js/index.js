@@ -1,4 +1,4 @@
-require('babel-polyfill');
+// require('babel-polyfill');
 // import 'babel-polyfill';
 [1,2,2].map(val=>{
     console.log(val)
