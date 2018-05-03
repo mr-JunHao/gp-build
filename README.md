@@ -14,11 +14,11 @@
 
 **src**
 开发文件
-css：支持scss转css。(less、postcss需要可以另加)
-js: 支持es6转es5。(暂时不支持一些promise、Object.assign转换，后续研究gulp添加babel-polyfill实现支持)
-include: 支持html模板化（https://www.npmjs.com/package/gulp-file-include）。
+##### css：支持scss转css。(less、postcss需要可以另加)
+##### js: 支持es6转es5。(暂时不支持一些promise、Object.assign转换，后续研究gulp添加babel-polyfill实现支持)
+##### include: 支持html模板化（https://www.npmjs.com/package/gulp-file-include）。
 
-## 使用：
+## 使用
 下载然后安装所有依赖包
 ```js
 npm install
