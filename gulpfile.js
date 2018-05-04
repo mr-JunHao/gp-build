@@ -16,13 +16,21 @@ const cssmin = require('gulp-cssmin'); //css压缩
 const uglify = require("gulp-uglify"); //js压缩
 const htmlminify = require('gulp-html-minify'); //html压缩
 const imagemin = require('gulp-imagemin'); //图片压缩
-const rev = require('gulp-rev'); //文件添加md5时间戳
-const revCollector = require('gulp-rev-collector'); //根据gulp-rev生成的json替换html的文件
 const runSequence = require('run-sequence'); //同步处理插件
-const useref = require('gulp-useref');//合并文件
+const useref = require('gulp-useref'); //合并文件
+const RevAll = require('gulp-rev-all');
+const filter = require('gulp-filter');
+
 
 let config = {
   dev: {
+    css: function () {
+      return gulp.src('./src/**/*.css')
+        .pipe(autoprefixer({
+          browsers: ["> 1%", "last 2 versions", "not ie <= 8"]
+        }))
+        .pipe(gulp.dest('./dist'))
+    },
     sass: function () {
       return gulp.src('./src/**/*.scss')
         .pipe(sass.sync().on('error', sass.logError))
@@ -38,7 +46,6 @@ let config = {
           basepath: './src/include/'
         }))
         .pipe(changed('./dist'))
-
         .pipe(gulp.dest('./dist'))
     },
     jsbabel: function () {
@@ -59,49 +66,60 @@ let config = {
         .pipe(webServer({
           livereload: true,
           path: '/',
-          port: 3000
+          port: 3000,
+          host: '0.0.0.0',
+          proxies: {
+            source: '/abc',
+            target: 'http://localhost:8080/abc',
+            options: {
+              headers: {
+                'ABC_HEADER': 'abc'
+              }
+            }
+          }
         }))
     }
   },
   prod: {
-    img: function () {
-      return gulp.src('./src/img/*.{jpg,png,gif,ico}')
-        .pipe(imagemin())
-        .pipe(gulp.dest('./dist/img'))
-    },
-    sass: function () {
-      return gulp.src('./src/**/*.scss')
-        .pipe(sass.sync().on('error', sass.logError))
-        .pipe(autoprefixer({
-          browsers: ["> 1%", "last 2 versions", "not ie <= 8"]
-        }))
-        .pipe(cssmin())
-        .pipe(rev())
-        .pipe(gulp.dest('./dist'))
-        .pipe(rev.manifest())
-        .pipe(gulp.dest('./src/rev/css'));
-    },
-    jsbabel: function () {
-      return gulp.src('./src/**/*.js')
-        .pipe(babel())
-        .pipe(uglify())
-        .pipe(rev())
-        .pipe(gulp.dest('./dist'))
-        .pipe(rev.manifest())
-        .pipe(gulp.dest('./src/rev/js'));
-    },
-    html: function () {
-      return gulp.src(['./src/rev/**/*.json', './src/**/*.html'])
-        .pipe(useref())
-        .pipe(fileinclude({
-          prefix: '@@',
-          basepath: './src/include/'
-        }))
-        .pipe(revCollector({
-          replaceReved: true
-        }))
-        .pipe(htmlminify())
-        .pipe(gulp.dest('./dist'))
+    taskAll: function(){
+      let jsFilter = filter('**/*.js',{restore: true}),
+          cssFilter = filter('**/*.css',{restore: true}),
+          scssFilter = filter('**/*.scss',{restore: true}),
+          htmlFilter = filter(['**/*.html'],{restore: true}),
+          imgFiliter = filter('./src/**/*.{jpg,png,gif,ico}',{restore: true});
+          // console.log(useref())
+    return gulp.src(['./src/**/*','./src/**/*.html'])
+          .pipe(scssFilter)
+          .pipe(sass.sync().on('error', sass.logError))
+          .pipe(gulp.dest('./src'))
+          .pipe(scssFilter.restore)
+          .pipe(useref())
+          .pipe(jsFilter)
+          .pipe(babel())
+          .pipe(uglify())
+          .pipe(jsFilter.restore)
+          .pipe(cssFilter)
+          .pipe(autoprefixer({
+            browsers: ["> 2%", "last 2 versions", "not ie <= 8"]
+          }))
+          .pipe(cssmin())
+          .pipe(cssFilter.restore)
+          .pipe(RevAll.revision({                 // 生成版本号
+            dontRenameFile: ['.html','.jpg','.png','.gif','.ico'],          // 不给 html 文件添加版本号
+            dontUpdateReference: ['.html','.jpg','.png','.gif','.ico']      // 不给文件里链接的html加版本号
+          }))
+          .pipe(imgFiliter)
+          .pipe(imagemin())
+          .pipe(imgFiliter.restore)
+          .pipe(htmlFilter)
+          .pipe(fileinclude({
+            prefix: '@@',
+            basepath: './src/include/'
+          }))
+          .pipe(htmlminify())
+          .pipe(htmlFilter.restore)
+          .pipe(gulp.dest('dist'))
+
     }
   }
 };
@@ -115,12 +133,13 @@ let tasks = Object.keys(config);
 tasks.map((taskName, index) => {
   gulp.task(taskName, config[taskName]);
 })
-if (mode === 'prod') {
-  //打包同步处理任务
-  gulp.task(mode, function () {
-    runSequence(...tasks);
-  });
-} else {
-  //开发异步（默认）处理
-  gulp.task(mode, tasks);
-}
+gulp.task(mode, tasks);
+// if (mode === 'prod') {
+//   //打包同步处理任务
+//   gulp.task(mode, function () {
+//     runSequence(...tasks);
+//   });
+// } else {
+//   //开发异步（默认）处理
+  
+// }

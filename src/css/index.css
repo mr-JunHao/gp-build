@@ -1,0 +1,10 @@
+.task {
+  width: 100%;
+  height: 200px; }
+  .task .child {
+    width: 100px; }
+
+.img {
+  background: url("../img/zhxy-10.png");
+  width: 100px;
+  height: 100px; }
