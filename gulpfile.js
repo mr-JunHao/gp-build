@@ -81,14 +81,19 @@ let config = {
     }
   },
   prod: {
+    img: function(){
+      gulp
+          .src('./src/**/*.{jpg,png,gif,ico}')
+          .pipe(imagemin())
+          .pipe(gulp.dest('dist'));
+    },
     taskAll: function(){
       let jsFilter = filter('**/*.js',{restore: true}),
           cssFilter = filter('**/*.css',{restore: true}),
           scssFilter = filter('**/*.scss',{restore: true}),
-          htmlFilter = filter(['**/*.html'],{restore: true}),
-          imgFiliter = filter('./src/**/*.{jpg,png,gif,ico}',{restore: true});
-          // console.log(useref())
-    return gulp.src(['./src/**/*','./src/**/*.html'])
+          htmlFilter = filter(['**/*.html'],{restore: true});
+
+    return gulp.src(['./src/**/*','!./src/**/*.{jpg,png,gif,ico}','./src/**/*.html'])
           .pipe(scssFilter)
           .pipe(sass.sync().on('error', sass.logError))
           .pipe(gulp.dest('./src'))
@@ -108,9 +113,6 @@ let config = {
             dontRenameFile: ['.html','.jpg','.png','.gif','.ico'],          // 不给 html 文件添加版本号
             dontUpdateReference: ['.html','.jpg','.png','.gif','.ico']      // 不给文件里链接的html加版本号
           }))
-          .pipe(imgFiliter)
-          .pipe(imagemin())
-          .pipe(imgFiliter.restore)
           .pipe(htmlFilter)
           .pipe(fileinclude({
             prefix: '@@',

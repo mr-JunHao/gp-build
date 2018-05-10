@@ -17,6 +17,7 @@
 ##### css：支持scss转css。(less、postcss需要可以另加)
 ##### js：支持es6转es5。(暂时不支持一些promise、Object.assign转换，后续研究gulp添加babel-polyfill实现支持)
 ##### include：支持html模板化（https://www.npmjs.com/package/gulp-file-include）。
+> scss与css不能同名。例如：index.css，index.scss
 
 ## 使用
 下载然后安装所有依赖包
@@ -54,8 +55,6 @@ npm run build
 
 ## 后续优化
 ~~- js、css文件合并~~
-- img雪碧图合并
-- img对小图片进行base64转换
 ~~- 配置本地服务反向代理~~
 
 
